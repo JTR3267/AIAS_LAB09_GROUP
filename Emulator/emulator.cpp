@@ -55,6 +55,22 @@ instr_type parse_instr(char* tok) {
     if ( streq(tok , "vse8_v")) return VSE8_V;
     if ( streq(tok , "vadd_vv")) return VADD_VV;
     if ( streq(tok , "vmul_vx")) return VMUL_VX;
+
+	if ( streq(tok , "clz")) return CLZ;
+	if ( streq(tok , "ctz")) return CTZ;
+	if ( streq(tok , "cpop")) return CPOP;
+	if ( streq(tok , "andn")) return ANDN;
+	if ( streq(tok , "orn")) return ORN;
+	if ( streq(tok , "xnor")) return XNOR;
+	if ( streq(tok , "min")) return MIN;
+	if ( streq(tok , "max")) return MAX;
+	if ( streq(tok , "minu")) return MINU;
+	if ( streq(tok , "maxu")) return MAXU;
+	if ( streq(tok , "sext.b")) return SEXT_B;
+	if ( streq(tok , "sext.h")) return SEXT_H;
+	if ( streq(tok , "bset")) return BSET;
+	if ( streq(tok , "bclr")) return BCLR;
+	if ( streq(tok , "binv")) return BINV;
     //*****************
 
 
@@ -597,6 +613,32 @@ int parse_instr(int line, char* ftok, instr* imem, int memoff, label_loc* labels
 		        i->a2.reg = parse_reg(o2 , line);
 		        i->a3.reg = parse_reg(o3 , line);
 		        return 1;
+			
+			case CLZ:
+			case CTZ:
+			case CPOP:
+			case SEXT_B:
+			case SEXT_H:
+				if ( !o1 || !o2 || o3 || o4 ) print_syntax_error( line,  "Invalid format" );
+				i->a1.reg = parse_reg(o1 , line);
+				i->a2.reg = parse_reg(o2 , line);
+				return 1;
+			
+			case ANDN:
+			case ORN:
+			case XNOR:
+			case MIN:
+			case MAX:
+			case MINU:
+			case MAXU:
+			case BSET:
+			case BCLR:
+			case BINV:
+				if ( !o1 || !o2 || !o3 || o4 ) print_syntax_error( line, "Invalid format" );
+				i->a1.reg = parse_reg(o1, line);
+				i->a2.reg = parse_reg(o2, line);
+				i->a3.reg = parse_reg(o3, line);
+				return 1;
 			//****************
 
 
@@ -879,6 +921,136 @@ void execute(uint8_t* mem, instr* imem, label_loc* labels, int label_count, bool
       		break;
 
       		case MUL: rf[i.a1.reg] = rf[i.a2.reg] * rf[i.a3.reg]; break;
+
+			case CLZ:
+				// output : xlenbits = 0
+				rf[i.a1.reg] = 0;
+				// count from MSB
+				for (int j = 31; j >= 0; j--)
+				{
+					// check if bit set 1
+					if ((rf[i.a2.reg] >> j) & 1)
+					{
+						break;
+					}
+					else
+					{
+						rf[i.a1.reg]++;
+					}
+				}
+				break;
+			case CTZ:
+				// output : xlenbits = 0
+				rf[i.a1.reg] = 0;
+				// count from LSB
+				for (int j = 0; j < 32; j++)
+				{
+					// check if bit set 1
+					if ((rf[i.a2.reg] >> j) & 1)
+					{
+						break;
+					}
+					else
+					{
+						rf[i.a1.reg]++;
+					}
+				}
+				break;
+			case CPOP:
+				// output : xlenbits = 0
+				rf[i.a1.reg] = 0;
+				// loop through all bit
+				for (int j = 0; j < 32; j++)
+				{
+					// check each bit
+					if ((rf[i.a2.reg] >> j) & 1)
+					{
+						rf[i.a1.reg]++;
+					}
+				}
+				break;
+			case ANDN:
+				// X(rd) = X(rs1) & ~X(rs2)
+				rf[i.a1.reg] = rf[i.a2.reg] & ~rf[i.a3.reg];
+				break;
+			case ORN:
+				// X(rd) = X(rs1) | ~X(rs2)
+				rf[i.a1.reg] = rf[i.a2.reg] | ~rf[i.a3.reg];
+				break;
+			case XNOR:
+				rf[i.a1.reg] = ~(rf[i.a2.reg] ^ rf[i.a3.reg]);
+				break;
+			case MIN:
+				// compare 2 signed integers, return smaller one
+				if ((int32_t)rf[i.a2.reg] < (int32_t)rf[i.a3.reg])
+				{
+					rf[i.a1.reg] = rf[i.a2.reg];
+				}
+				else
+				{
+					rf[i.a1.reg] = rf[i.a3.reg];
+				}
+				break;
+			case MAX:
+				// compare 2 signed integers, return bigger one
+				if ((int32_t)rf[i.a2.reg] > (int32_t)rf[i.a3.reg])
+				{
+					rf[i.a1.reg] = rf[i.a2.reg];
+				}
+				else
+				{
+					rf[i.a1.reg] = rf[i.a3.reg];
+				}
+				break;
+			case MINU:
+				// compare 2 unsigned integers, return smaller one
+				if ((uint32_t)rf[i.a2.reg] < (uint32_t)rf[i.a3.reg])
+				{
+					rf[i.a1.reg] = rf[i.a2.reg];
+				}
+				else
+				{
+					rf[i.a1.reg] = rf[i.a3.reg];
+				}
+				break;
+			case MAXU:
+				// compare 2 unsigned integers, return bigger one
+				if ((uint32_t)rf[i.a2.reg] > (uint32_t)rf[i.a3.reg])
+				{
+					rf[i.a1.reg] = rf[i.a2.reg];
+				}
+				else
+				{
+					rf[i.a1.reg] = rf[i.a3.reg];
+				}
+				break;
+			case SEXT_B:
+				if ((rf[i.a2.reg] >> 7) & 1)
+				{
+					rf[i.a1.reg] = (rf[i.a2.reg] & 0xff) | 0xffffff00;
+				}
+				else{
+					rf[i.a1.reg] = rf[i.a2.reg] & 0xff;
+				}
+				break;
+			case SEXT_H:
+				if ((rf[i.a2.reg] >> 15) & 1)
+				{
+					rf[i.a1.reg] = (rf[i.a2.reg] & 0xffff) | 0xffff00;
+				}
+				else{
+					rf[i.a1.reg] = rf[i.a2.reg] & 0xffff;
+				}
+				break;
+			case BSET:
+				rf[i.a1.reg] = rf[i.a2.reg] | (1 << (rf[i.a3.reg] & 0x1f));
+				break;
+			case BCLR:
+				rf[i.a1.reg] = rf[i.a2.reg] & ~(1 << (rf[i.a3.reg] & 0x1f));
+				break;
+			case BINV:
+				rf[i.a1.reg] = rf[i.a2.reg] ^ (1 << (rf[i.a3.reg] & 0x1f));
+				break;
 			//*****************
 
 

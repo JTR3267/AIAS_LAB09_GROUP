@@ -40,6 +40,22 @@ typedef enum {
     VSE8_V,
     VADD_VV,
     VMUL_VX,
+
+	CLZ,
+	CTZ,
+	CPOP,
+	ANDN,
+	ORN,
+	XNOR,
+	MIN,
+	MAX,
+	MINU,
+	MAXU,
+	SEXT_B,
+	SEXT_H,
+	BSET,
+	BCLR,
+	BINV,
     //*****************
 
 	ADD,
