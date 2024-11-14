@@ -1,15 +1,17 @@
-package lab10.PiplinedCPU
+package acal_lab09.PipelinedCPU
 
 import chisel3._
 import chisel3.util._
 
-import lab10.MemIF._
-import lab10.PiplinedCPU.StageRegister._
-import lab10.PiplinedCPU.Controller._
-import lab10.PiplinedCPU.DatapathModule._
-import lab10.PiplinedCPU.opcode_map._
+import acal_lab09.Memory._
+import acal_lab09.MemIF._
+import acal_lab09.PipelinedCPU.StageRegister._
+import acal_lab09.PipelinedCPU.Controller._
+import acal_lab09.PipelinedCPU.DatapathModule._
+import acal_lab09.PipelinedCPU.DatapathModule.DatapathComponent._
+import acal_lab09.PipelinedCPU.opcode_map._
 
-class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
+class PipelinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
     val io = IO(new Bundle{
         //InstMem
         val InstMem = new MemIF_CPU(memAddrWidth, memDataWidth)
@@ -23,9 +25,10 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
 
         // Test
         val E_Branch_taken = Output(Bool())
-        val Flush = Output(Bool())
+        val Flush_RAW_DH = Output(Bool())
+        val Flush_BH = Output(Bool())
+        val Stall_RAW_DH = Output(Bool())
         val Stall_MA = Output(Bool())
-        val Stall_DH = Output(Bool())
         val IF_PC = Output(UInt(memAddrWidth.W))
         val ID_PC = Output(UInt(memAddrWidth.W))
         val EXE_PC = Output(UInt(memAddrWidth.W))
@@ -40,6 +43,8 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
         val WB_wdata = Output(UInt(32.W))
         val EXE_Jump = Output(Bool())
         val EXE_Branch = Output(Bool())
+        val MEM_opcode = Output(UInt(7.W))
+        val DM_Length = Output(UInt(4.W))
     })
     /*****  Pipeline Stages Registers Module for holding data *****/
     // stage Registers
@@ -61,7 +66,7 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
 
     /* Wire Connect */
     // === IF stage reg (PC reg) ======================================================
-    stage_IF.io.Stall := contorller.io.Hcf        // To Be Modified
+    stage_IF.io.Stall := (contorller.io.Hcf||contorller.io.Stall_RAW_DH) // To Be Modified
     stage_IF.io.next_pc_in := datapath_IF.io.next_pc
 
     // IF Block Datapath
@@ -80,8 +85,8 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
     io.InstMem.wdata := 0.U // not used
 
     // === ID stage reg ==============================================================
-    stage_ID.io.Flush := false.B    // To Be Modified
-    stage_ID.io.Stall := contorller.io.Hcf      // To Be Modified
+    stage_ID.io.Flush := contorller.io.Flush_BH    // To Be Modified
+    stage_ID.io.Stall := (contorller.io.Hcf||contorller.io.Stall_RAW_DH)      // To Be Modified
     stage_ID.io.inst_in := datapath_IF.io.inst
     stage_ID.io.pc_in := stage_IF.io.pc
 
@@ -93,7 +98,7 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
     datapath_ID.io.ImmSel := contorller.io.D_ImmSel
 
     // === EXE stage reg ==============================================================
-    stage_EXE.io.Flush := false.B // To Be Modified
+    stage_EXE.io.Flush := (contorller.io.Flush_BH||contorller.io.Flush_RAW_DH) // To Be Modified
     stage_EXE.io.Stall := contorller.io.Hcf   // To Be Modified
     stage_EXE.io.pc_in := stage_ID.io.pc
     stage_EXE.io.inst_in := stage_ID.io.inst
@@ -169,10 +174,9 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
 
     /* Test */
     io.E_Branch_taken := contorller.io.E_Branch_taken
-    // TODO : Flush signal should be modified
-    io.Flush := contorller.io.Flush
-    // TODO : Stall signal should be modified
-    io.Stall_DH := contorller.io.Stall_DH
+    io.Flush_RAW_DH := contorller.io.Flush_RAW_DH
+    io.Flush_BH := contorller.io.Flush_BH
+    io.Stall_RAW_DH := contorller.io.Stall_RAW_DH
     io.Stall_MA := contorller.io.Stall_MA
     io.IF_PC := stage_IF.io.pc
     io.ID_PC := stage_ID.io.pc
@@ -188,4 +192,6 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
     io.WB_rd := stage_WB.io.inst(11,7)
     io.EXE_Jump := (stage_EXE.io.inst(6, 0)===JAL) || (stage_EXE.io.inst(6, 0)===JALR)
     io.EXE_Branch := (stage_EXE.io.inst(6, 0)===BRANCH)
+    io.MEM_opcode := contorller.io.MEM_opcode
+    io.DM_Length := contorller.io.DM_Length
 }

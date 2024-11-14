@@ -1,9 +1,9 @@
-package acal_lab09.PiplinedCPU.DatapathModule.DatapathComponent
+package acal_lab09.PipelinedCPU.DatapathModule.DatapathComponent
 
 import chisel3._
 import chisel3.util._
 
-import acal_lab09.PiplinedCPU.inst_type._
+import acal_lab09.PipelinedCPU.inst_type._
 
 class ImmGen extends Module{
     val io = IO(new Bundle{

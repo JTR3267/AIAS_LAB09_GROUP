@@ -1,8 +1,8 @@
-package acal_lab09.PiplinedCPU.DatapathModule
+package acal_lab09.PipelinedCPU.DatapathModule
 
 import chisel3._
 import chisel3.util._
-import acal_lab09.PiplinedCPU.pc_sel_map._
+import acal_lab09.PipelinedCPU.pc_sel_map._
 
 class Path_IF(addrWidth:Int) extends Module {
     val io = IO(new Bundle{

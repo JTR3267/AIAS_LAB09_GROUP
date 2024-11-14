@@ -1,4 +1,4 @@
-package acal_lab09.PiplinedCPU.DatapathModule.DatapathComponent
+package acal_lab09.PipelinedCPU.DatapathModule.DatapathComponent
 
 import chisel3._
 import chisel3.util._

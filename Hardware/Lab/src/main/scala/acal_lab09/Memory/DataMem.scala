@@ -3,7 +3,7 @@ package acal_lab09.Memory
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFile
-import acal_lab09.PiplinedCPU.wide._
+import acal_lab09.PipelinedCPU.wide._
 
 class DataMem(bits:Int) extends Module {
   val io = IO(new Bundle {

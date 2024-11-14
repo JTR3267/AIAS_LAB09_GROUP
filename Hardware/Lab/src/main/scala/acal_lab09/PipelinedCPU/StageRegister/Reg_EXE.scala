@@ -1,4 +1,4 @@
-package acal_lab09.PiplinedCPU.StageRegister
+package acal_lab09.PipelinedCPU.StageRegister
 
 import chisel3._
 import chisel3.util._

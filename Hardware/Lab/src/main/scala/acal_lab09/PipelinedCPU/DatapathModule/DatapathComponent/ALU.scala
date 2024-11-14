@@ -1,10 +1,10 @@
-package acal_lab09.PiplinedCPU.DatapathModule.DatapathComponent
+package acal_lab09.PipelinedCPU.DatapathModule.DatapathComponent
 
 import chisel3._
 import chisel3.util._
 
-import acal_lab09.PiplinedCPU.opcode_map._
-import acal_lab09.PiplinedCPU.alu_op_map._
+import acal_lab09.PipelinedCPU.opcode_map._
+import acal_lab09.PipelinedCPU.alu_op_map._
 
 class ALUIO extends Bundle{
   val src1    = Input(UInt(32.W))
