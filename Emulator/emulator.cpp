@@ -1036,7 +1036,7 @@ void execute(uint8_t* mem, instr* imem, label_loc* labels, int label_count, bool
 			case SEXT_H:
 				if ((rf[i.a2.reg] >> 15) & 1)
 				{
-					rf[i.a1.reg] = (rf[i.a2.reg] & 0xffff) | 0xffff00;
+					rf[i.a1.reg] = (rf[i.a2.reg] & 0xffff) | 0xffff0000;
 				}
 				else{
 					rf[i.a1.reg] = rf[i.a2.reg] & 0xffff;
