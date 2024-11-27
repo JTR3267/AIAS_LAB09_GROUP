@@ -423,7 +423,7 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 			
 			case HCF:
 			    binary = 0x0000000B;
-				//dexit = true;
+				dexit = true;
 			break;
 
 			case MUL:
@@ -481,12 +481,14 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 			break;
 		}
 
-		if ( i.psrc ) fprintf(inst_file, "%s\n", i.psrc );
+		if (!dexit) {
+			if ( i.psrc ) fprintf(inst_file, "%s\n", i.psrc );
 
-		fprintf(mch_file, "%02x\n", (binary>>0 ) & 0xff);
-		fprintf(mch_file, "%02x\n", (binary>>8 ) & 0xff);
-		fprintf(mch_file, "%02x\n", (binary>>16) & 0xff);
-		fprintf(mch_file, "%02x\n", (binary>>24) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>0 ) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>8 ) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>16) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>24) & 0xff);
+		}
 
 		inst_cnt++;
 	}
