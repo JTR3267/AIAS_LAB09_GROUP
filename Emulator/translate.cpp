@@ -505,10 +505,10 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 	}
 	//write "hcf" in the inst_file
 	fprintf(inst_file, "hcf\n");
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x00);
 	fprintf(mch_file, "%02x\n", 0x0B);
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x00);
 
 	//write data to data.hex
 	write_data_hex(mem,data_file);
