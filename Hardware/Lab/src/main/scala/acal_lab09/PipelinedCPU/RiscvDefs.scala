@@ -45,6 +45,21 @@ object alu_op_map {
   val AND = "b0000000_11111_111".U
   val SUB = "b0100000_11111_000".U
   val SRA = "b0100000_11111_101".U
+  val CLZ = "b0110000_00000_001".U
+  val CTZ = "b0110000_00001_001".U
+  val CPOP = "b0110000_00010_001".U
+  val ANDN = "b0100000_11111_111".U
+  val ORN = "b0100000_11111_110".U
+  val XNOR = "b0100000_11111_100".U
+  val MIN = "b0000101_11111_100".U
+  val MAX = "b0000101_11111_110".U
+  val MINU = "b0000101_11111_101".U
+  val MAXU = "b0000101_11111_111".U
+  val SEXT_B = "b0110000_00100_001".U
+  val SEXT_H = "b0110000_00101_001".U
+  val BSET = "b0010100_11111_001".U
+  val BCLR = "b0100100_11111_001".U
+  val BINV = "b0110100_11111_001".U
 }
 
 object pc_sel_map {
