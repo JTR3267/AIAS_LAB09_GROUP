@@ -60,6 +60,16 @@ object alu_op_map {
   val BSET = "b0010100_11111_001".U
   val BCLR = "b0100100_11111_001".U
   val BINV = "b0110100_11111_001".U
+  // member 2
+  val BEXT = "b0100100_11111_101".U
+  val ROR = "b0110000_11111_101".U
+  val ROL = "b0110000_11111_001".U
+  val SH1ADD = "b0010000_11111_010".U
+  val SH2ADD = "b0010000_11111_100".U
+  val SH3ADD = "b0010000_11111_110".U
+  val REV8 = "b0110101_11111_101".U
+  val ZEXT_H = "b0000100_00000_100".U
+  val ORC_B = "b0010100_11111_101".U
 }
 
 object pc_sel_map {

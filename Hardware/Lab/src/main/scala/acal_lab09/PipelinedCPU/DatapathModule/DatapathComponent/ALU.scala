@@ -69,6 +69,19 @@ class ALU extends Module{
     is(BSET  ){io.out := io.src1 | (1.U << io.src2(4, 0))}
     is(BCLR  ){io.out := io.src1 & ~(1.U(32.W) << io.src2(4, 0))}
     is(BINV  ){io.out := io.src1 ^ (1.U << io.src2(4, 0))}
+    // member 2
+    is(BEXT  ){io.out := (io.src1 >> io.src2(4, 0)) & 1.U}
+    is(ROR   ){io.out := (io.src1 >> io.src2(4, 0)) | (io.src1 << (32.U(6.W) - io.src2(4, 0)))}
+    is(ROL   ){io.out := (io.src1 << io.src2(4, 0)) | (io.src1 >> (32.U(6.W) - io.src2(4, 0)))}
+    is(SH1ADD){io.out := (io.src1 << 1.U(5.W)) + io.src2}
+    is(SH2ADD){io.out := (io.src1 << 2.U(5.W)) + io.src2}
+    is(SH3ADD){io.out := (io.src1 << 3.U(5.W)) + io.src2}
+    is(REV8  ){io.out := Cat(io.src1(7, 0), io.src1(15, 8), io.src1(23, 16), io.src1(31, 24))}
+    is(ZEXT_H){io.out := Cat((0.U(16.W)), io.src1(15, 0))}
+    is(ORC_B ){
+      io.out := Cat(Mux(io.src1(31, 24) === 0.U, 0.U(8.W), "hFF".U(8.W)), Mux(io.src1(23, 16) === 0.U, 0.U(8.W), "hFF".U(8.W)), 
+      Mux(io.src1(15, 8) === 0.U, 0.U(8.W), "hFF".U(8.W)), Mux(io.src1(7, 0) === 0.U, 0.U(8.W), "hFF".U(8.W)))
+    }
   }
 }
 
