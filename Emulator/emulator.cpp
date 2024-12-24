@@ -71,6 +71,21 @@ instr_type parse_instr(char* tok) {
 	if ( streq(tok , "bset")) return BSET;
 	if ( streq(tok , "bclr")) return BCLR;
 	if ( streq(tok , "binv")) return BINV;
+	// member 2
+	if ( streq(tok , "bext")) return BEXT;
+	if ( streq(tok , "bseti")) return BSETI;
+	if ( streq(tok , "bclri")) return BCLRI;
+	if ( streq(tok , "binvi")) return BINVI;
+	if ( streq(tok , "bexti")) return BEXTI;
+	if ( streq(tok , "ror")) return ROR;
+	if ( streq(tok , "rol")) return ROL;
+	if ( streq(tok , "rori")) return RORI;
+	if ( streq(tok , "sh1add")) return SH1ADD;
+	if ( streq(tok , "sh2add")) return SH2ADD;
+	if ( streq(tok , "sh3add")) return SH3ADD;
+	if ( streq(tok , "rev8")) return REV8;
+	if ( streq(tok , "zext.h")) return ZEXT_H;
+	if ( streq(tok , "orc.b")) return ORC_B;
     //*****************
 
 
@@ -619,6 +634,9 @@ int parse_instr(int line, char* ftok, instr* imem, int memoff, label_loc* labels
 			case CPOP:
 			case SEXT_B:
 			case SEXT_H:
+			case REV8:
+			case ZEXT_H:
+			case ORC_B:
 				if ( !o1 || !o2 || o3 || o4 ) print_syntax_error( line,  "Invalid format" );
 				i->a1.reg = parse_reg(o1 , line);
 				i->a2.reg = parse_reg(o2 , line);
@@ -634,11 +652,27 @@ int parse_instr(int line, char* ftok, instr* imem, int memoff, label_loc* labels
 			case BSET:
 			case BCLR:
 			case BINV:
+			case BEXT:
+			case ROR:
+			case ROL:
+			case SH1ADD:
+			case SH2ADD:
+			case SH3ADD:
 				if ( !o1 || !o2 || !o3 || o4 ) print_syntax_error( line, "Invalid format" );
 				i->a1.reg = parse_reg(o1, line);
 				i->a2.reg = parse_reg(o2, line);
 				i->a3.reg = parse_reg(o3, line);
 				return 1;
+			case BSETI:
+			case BCLRI:
+			case BINVI:
+			case BEXTI:
+			case RORI:
+				if ( !o1 || !o2 || !o3 || o4 ) print_syntax_error( line,  "Invalid format" );
+				i->a1.reg = parse_reg(o1 , line);
+				i->a2.reg = parse_reg(o2 , line);
+				i->a3.imm = parse_imm(o3, 5, line);
+			    return 1;
 			//****************
 
 
@@ -1050,6 +1084,91 @@ void execute(uint8_t* mem, instr* imem, label_loc* labels, int label_count, bool
 				break;
 			case BINV:
 				rf[i.a1.reg] = rf[i.a2.reg] ^ (1 << (rf[i.a3.reg] & 0x1f));
+				break;
+			// member 2
+			case BEXT:
+				// index = X(rs2) & (XLEN - 1)
+				// (X(rs1) >> index) & 1
+				rf[i.a1.reg] = (rf[i.a2.reg] >> (rf[i.a3.reg] & 0x1f)) & 1;
+				break;
+			case BSETI:
+				// index = shamt & (XLEN - 1)
+				// X(rs1) | (1 << index)
+				rf[i.a1.reg] = rf[i.a2.reg] | (1 << (i.a3.imm & 0x1f));
+				break;
+			case BCLRI:
+				// index = X(rs2) & (XLEN - 1)
+				// X(rs1) & ~(1 << index)
+				rf[i.a1.reg] = rf[i.a2.reg] & ~(1 << (i.a3.imm & 0x1f));
+				break;
+			case BINVI:
+				// index = shamt & (XLEN - 1)
+				// X(rs1) ^ (1 << index)
+				rf[i.a1.reg] = rf[i.a2.reg] ^ (1 << (i.a3.imm & 0x1f));
+				break;
+			case BEXTI:
+				// index = X(rs2) & (XLEN - 1)
+				// (X(rs1) >> index) & 1
+				rf[i.a1.reg] = (rf[i.a2.reg] >> (i.a3.imm & 0x1f)) & 1;
+				break;
+			case ROR:
+				// shamt = rf[i.a3.reg] & 0x1f
+				// (X(rs1) >> shamt) | (X(rs1) << (xlen - shamt))
+				rf[i.a1.reg] = (rf[i.a2.reg] >> (rf[i.a3.reg] & 0x1f)) | (rf[i.a2.reg] << (32 - (rf[i.a3.reg] & 0x1f)));
+				break;
+			case ROL:
+				// shamt = rf[i.a3.reg] & 0x1f
+				// (X(rs1) << shamt) | (X(rs1) >> (xlen - shamt))
+				rf[i.a1.reg] = (rf[i.a2.reg] << (rf[i.a3.reg] & 0x1f)) | (rf[i.a2.reg] >> (32 - (rf[i.a3.reg] & 0x1f)));
+				break;
+			case RORI:
+				// shamt = i.a3.imm & 0x1f
+				// (X(rs1) >> shamt) | (X(rs1) << (xlen - shamt))
+				rf[i.a1.reg] = (rf[i.a2.reg] >> (i.a3.imm & 0x1f)) | (rf[i.a2.reg] << (32 - (i.a3.imm & 0x1f)));
+				break;
+			case SH1ADD:
+				// X(rs2) + (X(rs1) << 1)
+				rf[i.a1.reg] = (rf[i.a2.reg] << 1) + rf[i.a3.reg];
+				break;
+			case SH2ADD:
+				// X(rs2) + (X(rs1) << 2)
+				rf[i.a1.reg] = (rf[i.a2.reg] << 2) + rf[i.a3.reg];
+				break;
+			case SH3ADD:
+				// X(rs2) + (X(rs1) << 3)
+				rf[i.a1.reg] = (rf[i.a2.reg] << 3) + rf[i.a3.reg];
+				break;
+			case REV8:
+				// output : xlenbits = 0
+				rf[i.a1.reg] = 0;
+				// loop each byte
+				for (int j = 0; j < 32; j += 8)
+				{
+					// loop each bit in byte
+					for (int k = 7; k >= 0; k--)
+					{
+						rf[i.a1.reg] = rf[i.a1.reg] << 1;
+						rf[i.a1.reg] = rf[i.a1.reg] | ((rf[i.a2.reg] >> (j+k)) & 1);
+					}
+				}
+				break;
+			case ZEXT_H:
+				// EXTZ(X(rs)[15..0])
+				rf[i.a1.reg] = rf[i.a2.reg] & 0x0000ffff;
+				break;
+			case ORC_B:
+				// output : xlenbits = 0
+				rf[i.a1.reg] = 0;
+				// loop each byte
+				for (int j = 24; j >= 0; j -= 8)
+				{
+					rf[i.a1.reg] = rf[i.a1.reg] << 8;
+					// check each byte
+					if ((rf[i.a2.reg] >> j) & 0xff)
+					{
+						rf[i.a1.reg] = rf[i.a1.reg] | 0xff;
+					}
+				}
 				break;
 			//*****************
 

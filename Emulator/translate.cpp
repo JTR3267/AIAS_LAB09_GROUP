@@ -423,7 +423,7 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 			
 			case HCF:
 			    binary = 0x0000000B;
-				//dexit = true;
+				dexit = true;
 			break;
 
 			case MUL:
@@ -606,6 +606,117 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 				binary += 0x34 << 25;
 			break;
 
+			// member 2
+			case BEXT:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x5 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.reg << 20;    //rs2
+				binary += 0x24 << 25;
+			break;
+			case BSETI:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x1 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.imm << 20;    //imm
+				binary += 0x14 << 25;
+			break;
+			case BCLRI:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x1 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.imm << 20;    //imm
+				binary += 0x24 << 25;
+			break;
+			case BINVI:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x1 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.imm << 20;    //imm
+				binary += 0x34 << 25;
+			break;
+			case BEXTI:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x5 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.imm << 20;    //imm
+				binary += 0x24 << 25;
+			break;
+			case ROR:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x5 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.reg << 20;    //rs2
+				binary += 0x30 << 25;
+			break;
+			case ROL:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x1 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.reg << 20;    //rs2
+				binary += 0x30 << 25;
+			break;
+			case RORI:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x5 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.imm << 20;    //imm
+				binary += 0x30 << 25;
+			break;
+			case SH1ADD:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x2 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.reg << 20;    //rs2
+				binary += 0x10 << 25;
+			break;
+			case SH2ADD:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x4 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.reg << 20;    //rs2
+				binary += 0x10 << 25;
+			break;
+			case SH3ADD:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x6 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += i.a3.reg << 20;    //rs2
+				binary += 0x10 << 25;
+			break;
+			case REV8:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x5 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += 0x6b8 << 20;
+			break;
+			case ZEXT_H:
+				binary = 0x33; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x4 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += 0x0 << 20;
+				binary += 0x4 << 25;
+			break;
+			case ORC_B:
+				binary = 0x13; //opcode
+				binary += i.a1.reg << 7;     //rd
+				binary += 0x5 << 12;
+				binary += i.a2.reg << 15;    //rs1
+				binary += 0x287 << 20;
+			break;
 			case UNIMPL:
 			default:
 				printf( "Reached an unimplemented instruction!\n" );
@@ -616,12 +727,14 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 			break;
 		}
 
-		if ( i.psrc ) fprintf(inst_file, "%s\n", i.psrc );
+		if (!dexit) {
+			if ( i.psrc ) fprintf(inst_file, "%s\n", i.psrc );
 
-		fprintf(mch_file, "%02x\n", (binary>>0 ) & 0xff);
-		fprintf(mch_file, "%02x\n", (binary>>8 ) & 0xff);
-		fprintf(mch_file, "%02x\n", (binary>>16) & 0xff);
-		fprintf(mch_file, "%02x\n", (binary>>24) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>0 ) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>8 ) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>16) & 0xff);
+			fprintf(mch_file, "%02x\n", (binary>>24) & 0xff);
+		}
 
 		inst_cnt++;
 	}
@@ -638,10 +751,10 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 	}
 	//write "hcf" in the inst_file
 	fprintf(inst_file, "hcf\n");
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x00);
 	fprintf(mch_file, "%02x\n", 0x0B);
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x00);
 
 	//write data to data.hex
 	write_data_hex(mem,data_file);

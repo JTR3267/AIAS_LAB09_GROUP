@@ -56,6 +56,21 @@ typedef enum {
 	BSET,
 	BCLR,
 	BINV,
+	// member 2
+	BEXT,
+	BSETI,
+	BCLRI,
+	BINVI,
+	BEXTI,
+	ROR,
+	ROL,
+	RORI,
+	SH1ADD,
+	SH2ADD,
+	SH3ADD,
+	REV8,
+	ZEXT_H,
+	ORC_B,
     //*****************
 
 	ADD,
