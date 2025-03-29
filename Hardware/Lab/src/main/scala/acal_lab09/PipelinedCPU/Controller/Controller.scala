@@ -261,7 +261,7 @@ class Controller(memAddrWidth: Int) extends Module {
 
   // Control signal - Stall
   // Stall for Data Hazard
-  io.Stall_RAW_DH := (is_D_rs1_W_rd_overlap || is_D_rs2_W_rd_overlap || is_D_rs1_MEM_rd_overlap || is_D_rs2_MEM_rd_overlap || is_D_rs1_EXE_rd_overlap || is_D_rs2_EXE_rd_overlap)
+  io.Stall_RAW_DH := !Predict_Miss && (is_D_rs1_W_rd_overlap || is_D_rs2_W_rd_overlap || is_D_rs1_MEM_rd_overlap || is_D_rs2_MEM_rd_overlap || is_D_rs1_EXE_rd_overlap || is_D_rs2_EXE_rd_overlap)
   io.Stall_MA := false.B // Stall for Waiting Memory Access
   // Control signal - Flush
   io.Flush_BH := Predict_Miss
